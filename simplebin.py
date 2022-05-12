@@ -138,7 +138,7 @@ def bin_form(environ, start_response):
 
 @route('/status')
 def status(_environ, start_response):
-    start_response('204 No Content', [])
+    start_response('200 Ok', [])
     return []
 
 
