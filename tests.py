@@ -51,10 +51,15 @@ class TestSimpleBin(unittest.TestCase):
             mock_snippet.get_by_id.assert_called_with('iexist')
 
     def test_missing_snippet(self):
-        """ Accessing a snippet that does not exist fails with a 404 """
-        with self.assertRaises(HTTPError) as exc:
-            urlopen(urljoin(BASE_URL, '/show?id=idontexist'))
-        self.assertEqual(exc.exception.code, 404)
+        """ Acceossing a snippet that does nt exist fails with a 404 """
+
+        with unittest.mock.patch('simplebin.Snippet') as mock_snippet:
+            mock_snippet.get_by_id.side_effect = FileNotFoundError
+            with self.assertRaises(HTTPError) as exc:
+                urlopen(urljoin(BASE_URL, '/show?id=idontexist'))
+            self.assertEqual(exc.exception.code, 404)
+        
+        mock_snippet.get_by_id.assert_called_with('idontexist')
 
 if __name__ == '__main__':
     unittest.main()
