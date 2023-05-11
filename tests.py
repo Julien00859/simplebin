@@ -1,6 +1,7 @@
 import urllib.request
 import unittest
 from threading import Thread
+import unittest.mock
 
 import simplebin
 import bottle
@@ -30,15 +31,20 @@ class TestSimpleBin(unittest.TestCase):
 
     def test_get_snippet(self):
         """ Accessing a snippet that exist show the valid code """
-        with urlopen('/iexist') as res:
-            self.assertEqual(res.status, 200)
-            self.assertEqual(res.read().decode(), "Hello world")
+        snippet = simplebin.Snippet('iexist', 'Hello world')
+        with unittest.mock.patch('simplebin.Snippet'):
+            simplebin.Snippet.get_by_name.return_value = snippet
+            with urlopen('/iexist') as res:
+                self.assertEqual(res.status, 200)
+                self.assertEqual(res.read().decode(), "Hello world")
 
 
     def test_missing_snippet(self):
         """ Accessing a snippet that does not exist fails with a 404 """
-        with urlopen('/idontexist') as res:
-            self.assertEqual(res.status, 404)
+        with unittest.mock.patch('simplebin.Snippet') as mock_snippet:
+            mock_snippet.get_by_name.side_effect = ValueError(404)
+            with urlopen('/idontexist') as res:
+                self.assertEqual(res.status, 404)
 
 
 if __name__ == '__main__':
