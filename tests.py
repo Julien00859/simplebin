@@ -1,5 +1,6 @@
 import urllib.request
 import unittest
+import unittest.mock
 from threading import Thread
 
 import simplebin
@@ -16,6 +17,13 @@ def urlopen(path):
 
 
 class TestSimpleBin(unittest.TestCase):
+
+
+    with unittest.mock.patch('simplebin.Snippet') as mock_snippet:
+         mock_snippet.get_by_name.side_effect = ValueError("Cannot create a new unique id.")
+
+
+
     @classmethod
     def setUpClass(cls):
         print("Starting builtin server in a daemon thread")
@@ -30,15 +38,20 @@ class TestSimpleBin(unittest.TestCase):
 
     def test_get_snippet(self):
         """ Accessing a snippet that exist show the valid code """
-        with urlopen('/iexist') as res:
-            self.assertEqual(res.status, 200)
-            self.assertEqual(res.read().decode(), "Hello world")
+        snippet = simplebin.Snippet('/iexist' ,'Hello world')
+        with unittest.mock.patch('simplebin.Snippet') as mock_snippet:
+            mock_snippet.get_by_name.return_value = snippet
+            with urlopen('/iexist') as res:
+                self.assertEqual(res.status, 200)
+                self.assertEqual(res.read().decode(), "Hello world")
 
 
     def test_missing_snippet(self):
         """ Accessing a snippet that does not exist fails with a 404 """
-        with urlopen('/idontexist') as res:
-            self.assertEqual(res.status, 404)
+        with unittest.mock.patch('simplebin.Snippet') as mock_snippet:
+            mock_snippet.get_by_name.side_effect = ValueError("Cannot create a new unique id.")
+            with urlopen('/idontexist') as res:
+                self.assertEqual(res.status, 404)
 
 
 if __name__ == '__main__':

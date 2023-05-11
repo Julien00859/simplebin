@@ -56,7 +56,7 @@ def status():
 def new():
     return bottle.template('newbin')  # newbin.tpl
 
-@bottle.route('/<name>')
+@bottle.route('/<name>') 
 def get(name):
     try:
         snippet = Snippet.get_by_name(name)
